@@ -1,0 +1,86 @@
+<DOCTYPE html>
+    <html>
+    <head>
+        <title>Poors Man Tweeter with Django and Vue</title>
+        <meta charset='utf-8'/>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.15.2/axios.js"></script>
+    </head>
+    <body>
+    <div id="tweeter-container">
+        <h1 style="text-align:center">Poors Man Tweeter with Django and Vue</h1>
+        <!-- Tweet Input-->
+        <div style="margin: auto; width: 70%; padding: 10px">
+            <div style="text-align:center;">
+                <form @submit.prevent="postTweet">
+                    <h4 style="display: inline">Name:</h4>
+                    <input style="display: inline" type="text" name="name" maxlength="20"
+                           required v-model="newTweet.name">
+                    <h4 style="display: inline">Message:</h4>
+                    <textarea style="display: inline; align-content: center;vertical-align: top;" type="text"
+                              name="message" rows="2"
+                              cols="30" required maxlength="50" v-model="newTweet.message"></textarea>
+                    <input style="display: inline" type="submit" value="Submit">
+                </form>
+            </div>
+            <!-- Table of tweets-->
+            <table style="width: 100%">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Message</th>
+                    <th>Name</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="tweet in tweets">
+                    <td style="text-align:center;word-break: break-all;">
+                        [[ tweet.created_date.slice(0,19).replace('T', ' ') ]]
+                    </td>
+                    <td style="text-align:center;word-break: break-all;">[[ tweet.message ]]</td>
+                    <td style="text-align:center;word-break: break-all;">[[ tweet.name ]]</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Vue Code -->
+        <script>
+            const vueApp = new Vue({
+                el: '#tweeter-container',
+                delimiters: ['[[', ']]'],
+                mounted: function () {
+                    console.log("In Mounted");
+                    this.getTweets();
+                },
+                data: {
+                    tweets: [],
+                    newTweet: {name: "", message: ""}
+                },
+                methods: {
+                    getTweets: function () {
+                        this.loading = false;
+                        axios.get("/api/tweet/").then((response) => {
+                            this.tweets = response.data;
+                        })
+                            .catch((err) => {
+                                console.log(err);
+                            })
+                    },
+                    postTweet: function () {
+                        axios.defaults.xsrfCookieName = 'csrftoken';
+                        axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+                        axios.post("/api/tweet/", this.newTweet).then(() => {
+                            this.getTweets()
+                        })
+                            .catch((err) => {
+                                console.log(err);
+                            })
+                    }
+                }
+            })
+        </script>
+    </div>
+    </body>
+    </html>
+</DOCTYPE>
